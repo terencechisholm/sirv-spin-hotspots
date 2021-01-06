@@ -1,0 +1,747 @@
+<html>
+<head>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+body{margin:0px;padding:0px;font-family: 'Source Sans Pro', sans-serif;color:#333333;}
+* {font-family: 'Source Sans Pro', sans-serif;color:#333333;}
+.mylabels {font-family: 'Source Sans Pro', sans-serif;color:#333333;}
+.full {width: 95vw;}
+.pix {width: 500px;float:left;}
+.hsf {width: 20vw;float:left;}
+.hsf_inner{padding:10px;}
+.clr {clear:both;}
+.thumbsrow_wrap{width: 95vw;overflow:auto;height:225px;}
+
+.button {
+  font: bold 20px Arial;
+  text-decoration: none;
+  background-color: #EEEEEE;
+  color: #333333;
+  padding: 5px 9px 5px 9px;
+  border-top: 1px solid #CCCCCC;
+  border-right: 1px solid #333333;
+  border-bottom: 1px solid #333333;
+  border-left: 1px solid #CCCCCC;
+}
+</style>
+
+
+<script>
+
+
+// UNDO 
+var ACTIONS_PLOTTED_COUNT = 0;// [UNDO]
+var numberOfFrames = 0;
+var numberOfRows = 1;
+
+// Read a page's GET URL variables and return them as an associative array.
+function getUrlVars()
+{
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(var i = 0; i < hashes.length; i++)
+    {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
+}
+
+
+var mySpin = unescape(getUrlVars()["SPIN_URL"]);
+
+if (getUrlVars()["SPIN_URL"] === undefined){
+var promptForSPINURL = prompt("Please enter your Spin URL", "");
+ if (promptForSPINURL != null) {
+  var goTO = '?SPIN_URL=' + promptForSPINURL + '&e=e';
+  window.location = goTO;
+ }
+}
+
+var RowsToggleMenu = '';// Important!
+
+  var to = mySpin.lastIndexOf('/');
+  to = to == -1 ? mySpin.length : to + 1;
+  mySpinRoot = mySpin.substring(0, to);
+  baseURL = mySpinRoot;
+var  mySPIN_URL_ROOT = baseURL;
+ // alert(mySPIN_URL_ROOT);
+
+
+
+function undoToStepNumber(stepNumber){
+// get that step number and put it's version in the output JSON to copy and paste
+var ALLUNDOS = document.getElementById('UNDOS').value;
+var UNDO_CHOP1 = ALLUNDOS.split('[[UNDO step="'+stepNumber);
+var UNDO_CHOP2 = UNDO_CHOP1[1].split('[[/UNDO]]');
+var UNDO_CHOP3 = UNDO_CHOP2[1].split('[[UNDO step="'+stepNumber); 
+var UNDO_CHOP4 = UNDO_CHOP3[0].split('[[UNDO');
+var UNDO_TO_RESTORE = UNDO_CHOP4[0];
+document.getElementById('INTERIM_HOTSPOTS_SPIN_JSON').value = UNDO_TO_RESTORE.trim();
+// now get the previous steps input stat/end x/y etc and populate it back into the fields
+// to add this feature later
+// now write this undo step as a new action which can also be undone
+ACTIONS_PLOTTED_COUNT = ACTIONS_PLOTTED_COUNT + 1;
+document.getElementById('UNDOS').value = document.getElementById('UNDOS').value + '[[UNDO step="' + ACTIONS_PLOTTED_COUNT + '" '+
+' UNDO_BACKTOSTEPNUMBER="'+ stepNumber + '"]][[\/UNDO]]';
+}
+
+function doOnLoad(){
+
+
+
+
+var myHOTSPOT_STARTS_FRAME_NUMBER = unescape(getUrlVars()['HOTSPOT_STARTS_FRAME_NUMBER']);
+if (myHOTSPOT_STARTS_FRAME_NUMBER == '' || myHOTSPOT_STARTS_FRAME_NUMBER == undefined){}else{
+document.getElementById("HOTSPOT_STARTS_FRAME_NUMBER").value = myHOTSPOT_STARTS_FRAME_NUMBER.replace('undefined','');
+}
+
+
+var myHOTSPOT_CLASS = unescape(getUrlVars()['HOTSPOT_CLASS']);
+if (myHOTSPOT_CLASS == '' || myHOTSPOT_CLASS == undefined){document.getElementById("HOTSPOT_CLASS").value = 'd1';}else{
+document.getElementById("HOTSPOT_CLASS").value = myHOTSPOT_CLASS.replace('undefined','d1');
+}
+
+var myHOTSPOT_STARTS_POSITION_X = unescape(getUrlVars()['HOTSPOT_STARTS_POSITION_X']);
+if (myHOTSPOT_STARTS_POSITION_X == '' || myHOTSPOT_STARTS_POSITION_X == undefined){}else{
+document.getElementById("HOTSPOT_STARTS_POSITION_X").value = myHOTSPOT_STARTS_POSITION_X.replace('undefined','');
+}
+
+var myHOTSPOT_STARTS_POSITION_Y = unescape(getUrlVars()['HOTSPOT_STARTS_POSITION_Y']);
+if (myHOTSPOT_STARTS_POSITION_Y == '' || myHOTSPOT_STARTS_POSITION_Y == undefined){}else{
+document.getElementById("HOTSPOT_STARTS_POSITION_Y").value = myHOTSPOT_STARTS_POSITION_Y.replace('undefined','');
+}
+
+var myHOTSPOT_ENDSON_FRAME_NUMBER = unescape(getUrlVars()['HOTSPOT_ENDSON_FRAME_NUMBER']);
+if (myHOTSPOT_ENDSON_FRAME_NUMBER == '' || myHOTSPOT_ENDSON_FRAME_NUMBER == undefined){}else{
+document.getElementById("HOTSPOT_ENDSON_FRAME_NUMBER").value = myHOTSPOT_ENDSON_FRAME_NUMBER.replace('undefined','');
+}
+
+var myHOTSPOT_ENDSON_POSITION_X = unescape(getUrlVars()['HOTSPOT_ENDSON_POSITION_X']);
+if (myHOTSPOT_ENDSON_POSITION_X == '' || myHOTSPOT_ENDSON_POSITION_X == undefined){}else{
+document.getElementById("HOTSPOT_ENDSON_POSITION_X").value = myHOTSPOT_ENDSON_POSITION_X.replace('undefined','');
+}
+
+var myHOTSPOT_ENDSON_POSITION_Y = unescape(getUrlVars()['HOTSPOT_ENDSON_POSITION_Y']);
+if (myHOTSPOT_ENDSON_POSITION_Y == '' || myHOTSPOT_ENDSON_POSITION_Y == undefined){}else{
+document.getElementById("HOTSPOT_ENDSON_POSITION_Y").value = myHOTSPOT_ENDSON_POSITION_Y.replace('undefined','');
+}
+
+var mySPIN_URL_ROOT = unescape(getUrlVars()['SPIN_URL_ROOT']);
+if (mySPIN_URL_ROOT == '' || mySPIN_URL_ROOT == undefined){}else{
+document.getElementById("SPIN_URL_ROOT").value = mySPIN_URL_ROOT;
+}
+
+
+var myHOTSPOT_CONTENT = unescape(getUrlVars()['HOTSPOT_CONTENT']);
+if (myHOTSPOT_CONTENT == '' || myHOTSPOT_CONTENT == undefined){}else{
+document.getElementById("HOTSPOT_CONTENT").value = myHOTSPOT_CONTENT.replace(/\+/g,' ').replace('undefined','');
+}
+/* */
+	setTimeout(function(){nextDo();}, 1);
+}
+
+function nextDo(){
+
+//alert(mySpin);
+
+
+var xmlhttp, text;
+xmlhttp = new XMLHttpRequest();
+xmlhttp.open('GET', mySpin+'?info', false);
+xmlhttp.send();
+text = xmlhttp.responseText;
+document.getElementById("ORIGINAL_SPIN_JSON").value = text;
+var if_existing_hotspots = text.indexOf('"hotspots": [');
+if (if_existing_hotspots > 0){
+document.getElementById("INTERIM_HOTSPOTS_SPIN_JSON").value = text;
+}
+	setTimeout(function(){thenDo();}, 5);
+}
+
+
+function thenDo(){
+// Load JSON Original Version
+// Get Image list from JSON
+// Return thumbnails with frame numbers, as clickable ways to set vars
+// Format WYSIWYG editor clickable bit for hotspots.
+
+document.getElementById("SPIN_URL_ROOT").value = mySPIN_URL_ROOT;
+document.getElementById("SPIN_URL").value = mySpin;
+
+var getImagesWithHotspotsToStripOut = document.getElementById("ORIGINAL_SPIN_JSON").value.replace('\n','');
+var getImagesWithoutHotspots = getImagesWithHotspotsToStripOut.split('    "hotspots": [');
+var getImages = getImagesWithoutHotspots[0];
+//alert(getImages);
+
+/*
+
+var getImagesCHOP1 = getImages.split(' "1": {');
+var getImagesCHOP2 = getImagesCHOP1[1].split('}');
+var myNumberAndImagesArray = getImagesCHOP2[0].split(",");
+var i = myNumberAndImagesArray.length;
+
+*/
+var getImagesCHOP1 = getImages.split(' "1": {');
+var getImagesCHOP2 = getImagesCHOP1[1].split('}');
+var myNumberAndImagesArray = getImagesCHOP2[0].split(",");//  "2448": "DSC02448.jpg",
+var numberOfFrames = myNumberAndImagesArray.length;
+var MYTHUMBS = '';
+var allImages = '';
+var commaAfterFirst = '';// Important!
+for (i = 0; i < myNumberAndImagesArray.length; i++) {
+// Strip out Number and use image only
+	var picOnly = myNumberAndImagesArray[i].split('"');
+	var allImages = allImages + commaAfterFirst + baseURL + picOnly[3];
+	commaAfterFirst = ",";
+	// alert(allImages);
+	MYTHUMBS = MYTHUMBS + '<div style="float:left;margin-left:2px;"><img src="'+baseURL + picOnly[3]+'?h=150" border="1"><br><small>' + Number(i+1) + ' <a href="javascript:void(0);" onclick="setStartFrame(' + Number(i+1) + ',\''+baseURL + picOnly[3]+'?w=500\');" style="text-decoration:none;color:#0066ff;">start</a> <a href="#" onclick="setEndFrame(' + Number(i+1) + ',\''+baseURL + picOnly[3]+'?w=500\');" style="text-decoration:none;color:#0066ff;">end</a></small></div>';
+}
+
+
+//
+document.getElementById('WYSIWYG').innerHTML = 'Row 1: <div style="min-width:'+ (300*(myNumberAndImagesArray.length+3))+'px;overflow-x:scroll;">' + MYTHUMBS + '</div><div style="clear:both;"></div>';;
+
+
+
+//
+var getImages1FRAMES = getImages.split(' "1": {');var getImages1FRAMES = getImages1FRAMES[1].split('}');
+//if (getImages1FRAMES[1] === undefined){}else{setTimeout(function(){thenDoRow(1);}, 5);}
+
+RowsToggleMenu = '<select name=showWhichRow id=showWhichRow onchange="showRowMenu(this.value);"><option value="1">Show Row 1</option>[MOREROWSINMENU]<option value="all">Show ALL Rows</option></select>';
+INJECT_INTO_RowsToggleMenu = '';
+/// if more rows, do them too...
+
+var getImages2FRAMES = getImages.split(' "2": {');var getImages2FRAMES = getImages2FRAMES[1].split('}');
+if (getImages2FRAMES[0] === undefined){}else{setTimeout(function(){thenDoRow(2);}, 500);numberOfRows = 2;INJECT_INTO_RowsToggleMenu = INJECT_INTO_RowsToggleMenu + '<option value="2">Show Row 2</option>';}
+
+var getImages3FRAMES = getImages.split(' "3": {');if (getImages3FRAMES[1]){
+var getImages3FRAMES = getImages3FRAMES[1].split('}');
+if (getImages3FRAMES[0] === undefined){}else{setTimeout(function(){thenDoRow(3);}, 1000);numberOfRows = 3;INJECT_INTO_RowsToggleMenu = INJECT_INTO_RowsToggleMenu + '<option value="3">Show Row 3</option>';}
+} 
+
+var getImages4FRAMES = getImages.split(' "4": {');if (getImages4FRAMES[1]){
+var getImages4FRAMES = getImages4FRAMES[1].split('}');
+if (getImages4FRAMES[0] === undefined){}else{setTimeout(function(){thenDoRow(4);}, 1500);numberOfRows = 4;INJECT_INTO_RowsToggleMenu = INJECT_INTO_RowsToggleMenu + '<option value="4">Show Row 4</option>';}
+}
+
+var getImages5FRAMES = getImages.split(' "5": {');if (getImages5FRAMES[1]){
+var getImages5FRAMES = getImages5FRAMES[1].split('}');
+if (getImages5FRAMES[0] === undefined){}else{setTimeout(function(){thenDoRow(5);}, 2000);numberOfRows = 5;INJECT_INTO_RowsToggleMenu = INJECT_INTO_RowsToggleMenu + '<option value="5">Show Row 5</option>';}
+}
+
+var getImages6FRAMES = getImages.split(' "6": {');if (getImages6FRAMES[1]){
+var getImages6FRAMES = getImages6FRAMES[1].split('}');
+if (getImages6FRAMES[0] === undefined){}else{setTimeout(function(){thenDoRow(6);}, 2500);numberOfRows = 6;INJECT_INTO_RowsToggleMenu = INJECT_INTO_RowsToggleMenu + '<option value="6">Show Row 6</option>';}
+}
+
+document.getElementById('rowsMenu').innerHTML = RowsToggleMenu.replace('[MOREROWSINMENU]',INJECT_INTO_RowsToggleMenu);
+
+
+}
+
+
+function thenDoRow(rowNumber){
+var getImages = document.getElementById("ORIGINAL_SPIN_JSON").value.replace('\n','');
+var getImagesFRAMES1 = getImages.split(' "1": {');
+var getImagesFRAMES2 = getImagesFRAMES1[1].split('}');
+var myFRAMESArray = getImagesFRAMES2[0].split(",");//  "2448": "DSC02448.jpg",
+var numberOfFramesInRow1 = myFRAMESArray.length;
+var TotalImagesExpectedAllRows = numberOfFramesInRow1 * rowNumber;
+
+var startThisRowAtFrameNumber = numberOfFramesInRow1*(rowNumber-1);
+//alert('startThisRowAtFrameNumber='+startThisRowAtFrameNumber + ' rowNumber=' + rowNumber);
+var MYTHUMBS='';
+var getImages2 = document.getElementById("ORIGINAL_SPIN_JSON").value.replace('\n','');
+var getImages2CHOP1 = getImages2.split(' "'+rowNumber+'": {');
+if (getImages2CHOP1[1] === undefined){}else{
+var getImages2CHOP2 = getImages2CHOP1[1].split('}');
+var Row2myNumberAndImagesArray = getImages2CHOP2[0].split(",");
+var Row2numberOfFrames = Row2myNumberAndImagesArray.length;
+var commaAfterFirst = '';// Important!
+var divClearFirst = '<div style="clear:both;"></div>';// Important!
+for (a = 0; a < Row2myNumberAndImagesArray.length; a++) {
+// Strip out Number and use image only
+	var picOnly = Row2myNumberAndImagesArray[a].split('"');
+	var allImages = allImages + commaAfterFirst + baseURL + picOnly[3];
+	commaAfterFirst = ",";
+	// alert(allImages);
+	MYTHUMBS = MYTHUMBS + divClearFirst + '<div style="float:left;margin-left:2px;"><img src="'+baseURL + picOnly[3]+'?h=150" border="1"><br><small>' + Number(a+1) + ' <a href="#" onclick="setStartFrame(' + Number(a+startThisRowAtFrameNumber+1) + ',\''+baseURL + picOnly[3]+'?w=500\');" style="text-decoration:none;color:#0066ff;">start</a> <a href="#" onclick="setEndFrame(' + Number(a+startThisRowAtFrameNumber+1) + ',\''+baseURL + picOnly[3]+'?w=500\');" style="text-decoration:none;color:#0066ff;">end</a> (F:' + Number(a+startThisRowAtFrameNumber+1) + ')</small></div>';
+	divClearFirst = '';
+}
+}
+if (rowNumber == 1){
+//document.getElementById('WYSIWYG').innerHTML = 'Row '+rowNumber+' <div style="min-width:'+ (125*(Row2myNumberAndImagesArray.length+333))+'px;">' + MYTHUMBS + '</div><div style="clear:both;"></div>';;
+}else if (rowNumber == 2){
+document.getElementById('WYSIWYG2').innerHTML = 'Row '+rowNumber+' <div style="min-width:'+ (125*(Row2myNumberAndImagesArray.length+333))+'px;">' + MYTHUMBS + '</div><div style="clear:both;"></div>';;
+}else if (rowNumber == 3){
+document.getElementById('WYSIWYG3').innerHTML = 'Row '+rowNumber+' <div style="min-width:'+ (125*(Row2myNumberAndImagesArray.length+333))+'px;">' + MYTHUMBS + '</div><div style="clear:both;"></div>';;
+}else if (rowNumber == 4){
+document.getElementById('WYSIWYG4').innerHTML = 'Row '+rowNumber+' <div style="min-width:'+ (125*(Row2myNumberAndImagesArray.length+333))+'px;">' + MYTHUMBS + '</div><div style="clear:both;"></div>';;
+}else if (rowNumber == 5){
+document.getElementById('WYSIWYG5').innerHTML = 'Row '+rowNumber+' <div style="min-width:'+ (125*(Row2myNumberAndImagesArray.length+333))+'px;">' + MYTHUMBS + '</div><div style="clear:both;"></div>';;
+}else if (rowNumber == 6){
+document.getElementById('WYSIWYG6').innerHTML = 'Row '+rowNumber+' <div style="min-width:'+ (125*(Row2myNumberAndImagesArray.length+333))+'px;">' + MYTHUMBS + '</div><div style="clear:both;"></div>';;
+}else{
+}
+
+
+
+
+}
+
+
+
+
+
+function setStartFrame(num,pic){
+document.getElementById("HOTSPOT_STARTS_FRAME_NUMBER").value = num;
+document.getElementById("WYSIWYG_STARTPIC").innerHTML = 'Start Keyframe: '+num+'<br /><img id=startPIC onclick="setStartCoords(event)" src="'+pic+'" width=500 border=1 style="margin:1px 0px;">';
+}
+
+function setEndFrame(num,pic){
+document.getElementById("HOTSPOT_ENDSON_FRAME_NUMBER").value = num;
+document.getElementById("WYSIWYG_ENDONPIC").innerHTML = 'End Keyframe: '+num+'<br /><img id=endPIC onclick="setEndCoords(event)" src="'+pic+'" width=500 border=1 style="margin:1px 0px;" >';
+}
+
+function setStartCoords(event) {
+   document.getElementById('startPIC').onclick = function clickEvent(e) {
+      // e = Mouse click event.
+      var rect = e.target.getBoundingClientRect();
+      var x = e.clientX - rect.left; //x position within the element.
+      var y = e.clientY - rect.top;  //y position within the element.
+      var h = rect.height;
+      var x_percent = Math.round((x/500)*100);
+      var y_percent = Math.round((y/h)*100);
+      //alert("Left? : " + x + " or " + x_percent + "% ; Top? : " + y + " or " + y_percent + "%.");
+      document.getElementById("HOTSPOT_STARTS_POSITION_X").value = x_percent;//
+      document.getElementById("HOTSPOT_STARTS_POSITION_Y").value = y_percent;//Math.round((click_y - y)/10);
+   }
+}
+
+function setEndCoords(event) {
+   document.getElementById('endPIC').onclick = function clickEvent(e) {
+      // e = Mouse click event.
+      var rect = e.target.getBoundingClientRect();
+      var x = e.clientX - rect.left; //x position within the element.
+      var y = e.clientY - rect.top;  //y position within the element.
+      var h = rect.height;
+      var x_percent = Math.round((x/500)*100);
+      var y_percent = Math.round((y/h)*100);
+      //alert("Left? : " + x + " or " + x_percent + "% ; Top? : " + y + " or " + y_percent + "%.");
+      document.getElementById("HOTSPOT_ENDSON_POSITION_X").value = x_percent;//
+      document.getElementById("HOTSPOT_ENDSON_POSITION_Y").value = y_percent;//Math.round((click_y - y)/10);
+   }
+}
+
+
+
+function plotTheFrames(){
+
+var checkFor_Content = document.getElementById("HOTSPOT_CONTENT").value;
+var checkFor_StartF = document.getElementById("HOTSPOT_STARTS_FRAME_NUMBER").value;
+var checkFor_EndOnF = document.getElementById("HOTSPOT_ENDSON_FRAME_NUMBER").value;
+
+var checkFor_StartX = document.getElementById("HOTSPOT_STARTS_POSITION_X").value;
+var checkFor_EndOnX = document.getElementById("HOTSPOT_ENDSON_POSITION_X").value;
+
+var checkFor_StartY = document.getElementById("HOTSPOT_STARTS_POSITION_Y").value;
+var checkFor_EndOnY = document.getElementById("HOTSPOT_ENDSON_POSITION_Y").value;
+
+var checkFor_CLASS = document.getElementById("HOTSPOT_CLASS").value;
+
+if (
+(checkFor_Content === '') || (checkFor_CLASS === '') || (checkFor_StartF === '')  || (checkFor_EndOnF === '')  || (checkFor_StartX === '')  || (checkFor_EndOnX === '') || (checkFor_StartY === '') || (checkFor_EndOnY === '')
+ ){
+
+alert("Please fill in all the fields (below), before plotting frames.");
+
+document.getElementById("HOTSPOT_CONTENT").focus();
+
+}else{
+
+var getImages = document.getElementById("ORIGINAL_SPIN_JSON").value.replace('\n','');
+var getImagesCHOP1 = getImages.split(' "1": {');
+if (getImagesCHOP1[1]){var getImagesCHOP2 = getImagesCHOP1[1].split('}');
+var myNumberAndImagesArray = getImagesCHOP2[0].split(",");
+}else{var myNumberAndImagesArray = '';}
+var numberOfFrames = myNumberAndImagesArray.length;
+var numberOfFramesInRow1 = numberOfFrames;
+
+var getImages2CHOP1 = getImages.split(' "2": {');
+if (getImages2CHOP1[1]){var getImages2CHOP2 = getImages2CHOP1[1].split('}');
+var myNumberAndImagesArray2 = getImages2CHOP2[0].split(",");
+var numberOfFrames = numberOfFrames + myNumberAndImagesArray2.length;
+}else{var myNumberAndImagesArray2 = '';}
+
+var getImages3CHOP1 = getImages.split(' "3": {');
+if (getImages3CHOP1[1]){var getImages3CHOP2 = getImages3CHOP1[1].split('}');
+var myNumberAndImagesArray3 = getImages3CHOP2[0].split(",");
+var numberOfFrames = numberOfFrames + myNumberAndImagesArray3.length;
+}else{var myNumberAndImagesArray3 = '';}
+
+var getImages4CHOP1 = getImages.split(' "4": {');
+if (getImages4CHOP1[1]){var getImages4CHOP2 = getImages4CHOP1[1].split('}');
+var myNumberAndImagesArray4 = getImages4CHOP2[0].split(",");
+var numberOfFrames = numberOfFrames + myNumberAndImagesArray4.length;
+}else{var myNumberAndImagesArray4 = '';}
+
+var getImages5CHOP1 = getImages.split(' "5": {');
+if (getImages5CHOP1[1]){var getImages5CHOP2 = getImages5CHOP1[1].split('}');
+var myNumberAndImagesArray5 = getImages5CHOP2[0].split(",");
+var numberOfFrames = numberOfFrames + myNumberAndImagesArray5.length;
+}else{var myNumberAndImagesArray5 = '';}
+
+var getImages6CHOP1 = getImages.split(' "6": {');
+if (getImages6CHOP1[1]){var getImages6CHOP2 = getImages6CHOP1[1].split('}');
+var myNumberAndImagesArray6 = getImages6CHOP2[0].split(",");
+var numberOfFrames = numberOfFrames + myNumberAndImagesArray6.length;
+}else{var myNumberAndImagesArray6 = '';}
+
+
+// validate frame totals for each row... if the same, it's right. If not, it's other data. 
+//var numberOfFrames = myNumberAndImagesArray.length;
+
+
+var INJECT_TEMPLATE_1 = '\n    "loopColumn":true,'+'\n'+
+'    "images":{'+'\n'+
+'      "main":{'+'\n'+
+'        "format":"webp",'+'\n'+
+'        "webp":{'+'\n'+
+'          "fallback":"jpg"'+'\n'+
+'        },'+'\n'+
+'        "quality":"85"'+'\n'+
+'      }'+'\n'+
+'    },'+'\n'+
+'    "mousewheelStep":3,'+'\n'+
+'    "autospin":"once",'+'\n'+
+'    "autospinStop":"click",'+'\n'+
+'    "autospinDirection":"clockwise",'+'\n'+
+'    "startColumn":"1",'+'\n'+
+'    "hotspots":['+'\n'+
+'      INJECT_HOTSPOTS_HERE'+'\n'+
+'    ],"reverseRotation": "off",'+'\n'+
+'    "hint":false,'+'\n'+
+'  ';
+
+
+
+var INJECT_TEMPLATE_2 = ',INJECT_HOTSPOTS_HERE'+''+'';
+
+var INJECT_TEMPLATE_3 = '\n      '+'INJECT_HOTSPOTS_HERE'+','+'';
+
+var HOTSPOT_CLASS = document.getElementById("HOTSPOT_CLASS").value;
+
+var BOX_X = -100;
+var BOX_Y = -40;
+var SINGLE_HOTSPOT_TEMPLATE = 'LALALALAL';
+
+
+var SINGLE_HOTSPOT_TEMPLATE = '{'+'\n'+
+'        "data":"<div style=\'width:225px;min-height:80px;\'>[HOTSPOT_CONTENT]</div>",'+'\n'+
+'        "frames":{'+'\n'+
+'          "[FRAMENUMBER]":{'+'\n'+
+'            "pointer":{'+'\n'+
+'              "style":"'+HOTSPOT_CLASS+'",'+'\n'+
+'                "x": "[POS_X]%",'+'\n'+
+'                "y": "[POS_Y]%"'+'\n'+
+'            },'+'\n'+
+'            "box":{'+'\n'+
+'              "x":[BOX_X],'+'\n'+
+'              "y":[BOX_Y]'+'\n'+
+'            }'+'\n'+
+'          }'+'\n'+
+'        }'+'\n'+
+'      }'+
+'';
+
+/*
+
+Tokens:
+[FRAMENUMBER]
+[POS_X]
+[POS_Y]
+[BOX_X]
+[BOX_Y]
+*/
+
+//var numberOfFrames = 30;//Number(Number(document.getElementById("HOTSPOT_ENDSON_FRAME_NUMBER").value) - Number(document.getElementById("HOTSPOT_STARTS_FRAME_NUMBER").value)) + 1);
+
+//alert('numberOfFrames='+numberOfFrames);
+var START_FRAME = Number(document.getElementById("HOTSPOT_STARTS_FRAME_NUMBER").value);
+var ENDON_FRAME = Number(document.getElementById("HOTSPOT_ENDSON_FRAME_NUMBER").value);
+
+var START_X = Number(document.getElementById("HOTSPOT_STARTS_POSITION_X").value);
+var ENDON_X = Number(document.getElementById("HOTSPOT_ENDSON_POSITION_X").value);
+
+var NUMBER_OF_HOTSPOT_FRAMES = (Number(ENDON_FRAME) - Number(START_FRAME));
+// alert(NUMBER_OF_HOTSPOT_FRAMES);
+
+var MOVE_MY_X_BY = Number((Number(document.getElementById("HOTSPOT_ENDSON_POSITION_X").value) - Number(document.getElementById("HOTSPOT_STARTS_POSITION_X").value) ) / NUMBER_OF_HOTSPOT_FRAMES);
+var MOVE_MY_Y_BY = Number((Number(document.getElementById("HOTSPOT_ENDSON_POSITION_Y").value) - Number(document.getElementById("HOTSPOT_STARTS_POSITION_Y").value) ) / NUMBER_OF_HOTSPOT_FRAMES);
+
+//var MOVE_MY_X_BY = Number((document.getElementById("HOTSPOT_ENDSON_POSITION_X").value - document.getElementById("HOTSPOT_STARTS_POSITION_X").value ) / numberOfFrames);
+//var MOVE_MY_Y_BY = Number((document.getElementById("HOTSPOT_ENDSON_POSITION_Y").value - document.getElementById("HOTSPOT_STARTS_POSITION_Y").value ) / numberOfFrames);
+
+//alert('numberOfFrames ' + numberOfFrames + 'NUMBER_OF_HOTSPOT_FRAMES ' + NUMBER_OF_HOTSPOT_FRAMES + '\nMOVE_MY_X_BY ' + MOVE_MY_X_BY + '\nMOVE_MY_Y_BY ' + MOVE_MY_Y_BY);
+
+var TO_INJECT = '';
+
+var LAST_POS_X = document.getElementById("HOTSPOT_STARTS_POSITION_X").value;
+var THIS_POS_X = document.getElementById("HOTSPOT_STARTS_POSITION_X").value;
+var count = 0;
+var COMMA_AFTER_FIRST = '';// Important!
+var HOTSPOT_CONTENT = document.getElementById("HOTSPOT_CONTENT").value.replace(/"/g,'\\"');
+var ALL_TO_INJECT = '';
+var TO_INJECT = '';
+var LAST_POS_Y = document.getElementById("HOTSPOT_STARTS_POSITION_Y").value;
+var LAST_POS_X = document.getElementById("HOTSPOT_STARTS_POSITION_Y").value;
+var OriginalSPIN = document.getElementById('ORIGINAL_SPIN_JSON').value;
+
+var InterimJSON = document.getElementById('INTERIM_HOTSPOTS_SPIN_JSON').value;
+
+var isThisTheFirstSetOfHotspotsOrNot = OriginalSPIN.indexOf('"settings": {');// 
+//if ((isThisTheFirstSetOfHotspotsOrNot > -1) && ((InterimJSON == '') || (InterimJSON == undefined))){
+if (((InterimJSON == '') || (InterimJSON == undefined))){
+var Hotspot_SPIN = OriginalSPIN.replace('"settings": {','"settings": {'+INJECT_TEMPLATE_1+'');
+//alert(1);
+}else{
+//var Hotspot_SPIN = OriginalSPIN.replace('],"reverseRotation":',INJECT_TEMPLATE_2+'],"reverseRotation":');
+
+var is_it = InterimJSON.indexOf('],"reverseRotation":');
+if (is_it >= 0){
+//alert(321);
+	var Hotspot_SPIN = InterimJSON.replace('],"reverseRotation":',INJECT_TEMPLATE_2+'],"reverseRotation":');// IF THIS IS THE 2ND SET OF HOTSPOTS ON THE 1ST GO OF CREATING THEM, USE THIS VERSION 
+}else{
+var Hotspot_SPIN = InterimJSON.replace('"hotspots": [\n      ','"hotspots": ['+INJECT_TEMPLATE_3);// IF THIS IS THE 2ND SET OF HOTSPOTS ON AN EDIT OF A SPIN WITH HOTSPOTS, USE THIS VERSION 
+//alert(325);
+}
+//
+}
+var HotspotCount = 0;
+
+//alert('numberOfFrames '+numberOfFrames);
+var FRAMENUMBER = Number(document.getElementById("HOTSPOT_STARTS_FRAME_NUMBER").value);
+for (i = 0; i < numberOfFrames; i++) {
+count++;
+ if (
+ (START_FRAME <= count) && (ENDON_FRAME >= count) 
+ ){
+// (Number(document.getElementById("HOTSPOT_ENDSON_FRAME_NUMBER").value) >= count) 
+var THIS_ONE = SINGLE_HOTSPOT_TEMPLATE;
+//FRAMENUMBER++;// = FRAMENUMBER + HotspotCount;
+var LAST_POS_Y = Number(Number(LAST_POS_X) + Number(MOVE_MY_X_BY));
+var THIS_POS_Y = Number(Number(LAST_POS_Y) + Number(MOVE_MY_Y_BY));
+
+
+var THIS_POS_X = Math.round(Number(document.getElementById("HOTSPOT_STARTS_POSITION_X").value) + Math.round(MOVE_MY_X_BY * (HotspotCount)));
+var THIS_POS_Y = Math.round(Number(document.getElementById("HOTSPOT_STARTS_POSITION_Y").value) + Math.round(MOVE_MY_Y_BY * (HotspotCount)));
+
+// Single Frame plotting
+if (START_FRAME === ENDON_FRAME){
+THIS_POS_X = Number(document.getElementById("HOTSPOT_STARTS_POSITION_X").value);
+THIS_POS_Y = Number(document.getElementById("HOTSPOT_STARTS_POSITION_Y").value);
+}
+
+if (THIS_POS_X < 40){BOX_X = -40;}// default -100
+if (THIS_POS_X < 30){BOX_X = -20;}
+if (THIS_POS_X < 20){BOX_X = -10;}
+if (THIS_POS_X < 10){BOX_X = 0;}
+if (THIS_POS_X < 5){BOX_X = 2;}
+if (THIS_POS_X > 50){BOX_X = -150;}
+if (THIS_POS_X > 60){BOX_X = -170;}
+if (THIS_POS_X > 65){BOX_X = -185;}
+if (THIS_POS_X > 70){BOX_X = -200;}
+if (THIS_POS_X > 80){BOX_X = -220;}
+if (THIS_POS_X > 90){BOX_X = -250;}
+if (THIS_POS_X > 95){BOX_X = -300;}
+
+if (THIS_POS_Y < 20){BOX_Y = -20;}// default -40
+if (THIS_POS_Y < 10){BOX_Y = -10;}// default -40
+if (THIS_POS_Y < 5){BOX_Y = 0;}// default -40
+if (THIS_POS_Y > 60){BOX_Y = -55;}
+if (THIS_POS_Y > 70){BOX_Y = -65;}
+if (THIS_POS_Y > 80){BOX_Y = -90;}
+if (THIS_POS_Y > 90){BOX_Y = -120;}
+
+
+HotspotCount++;
+
+//alert('TO_INJECT' + TO_INJECT);
+
+// Apply token values
+TO_INJECT = TO_INJECT + COMMA_AFTER_FIRST + SINGLE_HOTSPOT_TEMPLATE.replace("[FRAMENUMBER]",FRAMENUMBER).replace("[FRAMENUMBER]",FRAMENUMBER).replace("[POS_X]",THIS_POS_X).replace("[POS_Y]",THIS_POS_Y).replace("[BOX_X]",BOX_X).replace("[BOX_Y]",BOX_Y).replace("[HOTSPOT_CONTENT]",HOTSPOT_CONTENT).replace("[FRAMENUMBER]",FRAMENUMBER).replace("[BOX_X]",BOX_X).replace("[BOX_Y]",BOX_Y);
+var COMMA_AFTER_FIRST = ',';
+FRAMENUMBER++;// = FRAMENUMBER + HotspotCount;
+ }
+}
+
+// alert(numberOfFrames + '\nTO Inject:\n' + count +  ALL_TO_INJECT);
+
+
+var HotspotsSPIN = Hotspot_SPIN.replace('INJECT_HOTSPOTS_HERE',TO_INJECT);
+
+document.getElementById('INTERIM_HOTSPOTS_SPIN_JSON').value = HotspotsSPIN.replace('    "reverseRotation": "column",','').replace('    "reverseRotation": "column",','').replace('    "reverseRotation": "row",','').replace('    "reverseRotation": "both",','');
+
+
+ACTIONS_PLOTTED_COUNT = ACTIONS_PLOTTED_COUNT + 1;
+
+document.getElementById('UNDOS').value = document.getElementById('UNDOS').value + '\n[[UNDO step="' + ACTIONS_PLOTTED_COUNT + '" '+
+' HOTSPOT_STARTS_FRAME_NUMBER="'+ document.getElementById('HOTSPOT_STARTS_FRAME_NUMBER').value + '" ' +
+' HOTSPOT_STARTS_POSITION_X="'+ document.getElementById('HOTSPOT_STARTS_POSITION_X').value + '" ' +
+' HOTSPOT_STARTS_POSITION_Y="'+ document.getElementById('HOTSPOT_STARTS_POSITION_Y').value + '" ' +
+' HOTSPOT_ENDSON_FRAME_NUMBER="'+ document.getElementById('HOTSPOT_ENDSON_FRAME_NUMBER').value + '" ' +
+' HOTSPOT_ENDSON_POSITION_X="'+ document.getElementById('HOTSPOT_ENDSON_POSITION_X').value + '" ' +
+' HOTSPOT_ENDSON_POSITION_Y="'+ document.getElementById('HOTSPOT_ENDSON_POSITION_Y').value + '" ' +
+' SPIN_URL_ROOT="'+ document.getElementById('SPIN_URL_ROOT').value + '"]]' +
+document.getElementById('HOTSPOT_CONTENT').value + ',' +
+'[[\/UNDO]]' + HotspotsSPIN;
+
+document.getElementById('STEPSBACK').innerHTML = document.getElementById('STEPSBACK').innerHTML + ' | <a href="#SPIN-JSON" onclick="undoToStepNumber('+ACTIONS_PLOTTED_COUNT+')">'+ACTIONS_PLOTTED_COUNT+'</a>';
+
+ }
+ }
+
+function showRowMenu(whatRow){
+if (whatRow == 'all'){
+if (numberOfRows === 1){document.getElementById('row1').style.display='block';}
+if (numberOfRows === 2){document.getElementById('row1').style.display='block';document.getElementById('row2').style.display='block';}
+if (numberOfRows === 3){document.getElementById('row1').style.display='block';document.getElementById('row2').style.display='block';document.getElementById('row3').style.display='block';}
+if (numberOfRows === 4){document.getElementById('row1').style.display='block';document.getElementById('row2').style.display='block';document.getElementById('row3').style.display='block';document.getElementById('row4').style.display='block';}
+if (numberOfRows === 5){document.getElementById('row1').style.display='block';document.getElementById('row2').style.display='block';document.getElementById('row3').style.display='block';document.getElementById('row4').style.display='block';document.getElementById('row5').style.display='block';}
+if (numberOfRows === 6){document.getElementById('row1').style.display='block';document.getElementById('row2').style.display='block';document.getElementById('row3').style.display='block';document.getElementById('row4').style.display='block';document.getElementById('row5').style.display='block';document.getElementById('row6').style.display='block';}
+}else{
+document.getElementById('row1').style.display='none';
+document.getElementById('row2').style.display='none';
+document.getElementById('row3').style.display='none';
+document.getElementById('row4').style.display='none';
+document.getElementById('row5').style.display='none';
+document.getElementById('row6').style.display='none';
+document.getElementById('row'+whatRow).style.display='block';
+}
+}
+
+</script>
+
+</head>
+
+<body onload="setTimeout(function(){doOnLoad();}, 2);" ><form action=? method=GET id=theForm name=theForm>
+<div id=page_wrap class=full>
+<div class=mylabels>Original Spin URL: </div><input type="text" name=SPIN_URL id=SPIN_URL value="" style="width:60%"> <a href='#' onclick="window.location='?SPIN_URL='+document.getElementById('SPIN_URL').value;">START NEW SPIN</a></nobr>
+<input type="hidden" name=SPIN_URL_ROOT id=SPIN_URL_ROOT value="" style="width:60%">
+</div>
+
+<div id=page_wrap class=full>
+<div id=rowsMenu></div>
+
+<div id="row1" class=thumbsrow_wrap style="display:block;"><div id=WYSIWYG></div></div>
+<div id="row2" class=thumbsrow_wrap style="display:none;"><div id=WYSIWYG2></div></div>
+<div id="row3" class=thumbsrow_wrap style="display:none;"><div id=WYSIWYG3></div></div>
+<div id="row4" class=thumbsrow_wrap style="display:none;"><div id=WYSIWYG4></div></div>
+<div id="row5" class=thumbsrow_wrap style="display:none;"><div id=WYSIWYG5></div></div>
+<div id="row6" class=thumbsrow_wrap style="display:none;"><div id=WYSIWYG6></div></div>
+<div id=WYSIWYG_STARTPIC class=pix><img id=startPIC onclick="setStartCoords(event)" src="pic_start.jpg" border=1 style="margin:1px 0px;width: 500px;float:left;" class=pix></div>
+<div id=WYSIWYG_ENDONPIC class=pix><img id=endPIC onclick="setStartCoords(event)" src="pic_end.jpg" border=1 style="margin:1px 0px;width: 500px;float:left;" class=pix></div>
+
+<!--<div style="clear:both;"></div>-->
+<div class=hsf>
+<div class=hsf_inner>
+<br /><div class=mylabels>Hotspot Style/Class: </div><input type="text" name=HOTSPOT_CLASS id=HOTSPOT_CLASS  style="width:25px"> d1 <img src="https://scripts.sirv.com/spin/graphics/hotspot1.png" />, d2 <img src="https://scripts.sirv.com/spin/graphics/hotspot2.png" /> or d3 <img src="https://scripts.sirv.com/spin/graphics/hotspot3.png" />
+<table width=200>
+<tr>
+<td valign="top" width=100>
+<div class=mylabels>Start Frame: </div><input type="text" name=HOTSPOT_STARTS_FRAME_NUMBER id=HOTSPOT_STARTS_FRAME_NUMBER  style="width:25px">
+<br /><div class=mylabels>Start X%: </div><input type="text" name=HOTSPOT_STARTS_POSITION_X id=HOTSPOT_STARTS_POSITION_X  style="width:25px">
+<br /><div class=mylabels>Start Y%: </div><input type="text" name=HOTSPOT_STARTS_POSITION_Y id=HOTSPOT_STARTS_POSITION_Y  style="width:25px">
+</td>
+<td valign="top" width=100>
+<div class=mylabels>End Frame: </div><input type="text" name=HOTSPOT_ENDSON_FRAME_NUMBER id=HOTSPOT_ENDSON_FRAME_NUMBER  style="width:25px">
+<br /><div class=mylabels>End X%: </div><input type="text" name=HOTSPOT_ENDSON_POSITION_X id=HOTSPOT_ENDSON_POSITION_X  style="width:25px">
+<br /><div class=mylabels>End Y%: </div><input type="text" name=HOTSPOT_ENDSON_POSITION_Y id=HOTSPOT_ENDSON_POSITION_Y  style="width:25px">
+</td>
+</tr>
+</table>
+<table>
+<tr>
+<td valign="top" colspan="2">
+</form>
+
+<div class=mylabels>Content: </div><input type="text" name=HOTSPOT_CONTENT id=HOTSPOT_CONTENT value="" style="width:90%">
+
+
+<input type="hidden" name=END_SUBMIT id=END_SUBMIT value="END">
+<br />
+<br />
+<br />
+<a href='javascript:void(0);' onclick="plotTheFrames();" class=button style="
+  font: bold 20px Arial;
+  text-decoration: none;
+  background-color: #EEEEEE;
+  color: #333333;
+  padding: 5px 9px 5px 9px;
+  border-top: 1px solid #CCCCCC;
+  border-right: 1px solid #333333;
+  border-bottom: 1px solid #333333;
+  border-left: 1px solid #CCCCCC;">[ PLOT HOTSPOTS ]</a>
+
+<br />
+<br />
+<br />
+<div id=STEPSBACK>Undo Back to Step: </div>
+<br />
+
+</td>
+</tr>
+</table>
+
+
+
+<a name="SPIN-JSON"></a>
+Your Spin with Hotspots 
+<br />
+<textarea name=INTERIM_HOTSPOTS_SPIN_JSON id=INTERIM_HOTSPOTS_SPIN_JSON style="width:90%;height:400px;"></textarea>
+<br />
+All set? Copy and paste the Spin file code above, then save as example.spin, upload to Sirv in the folder where the images are... <br />
+<br />Or scroll up, and create another set of hotspots, by clicking new frames to start/end on and enter new data for your hotspots.
+
+<br />
+
+</div>
+</div>
+<div class=clr></div>
+<textarea name=ORIGINAL_SPIN_JSON id=ORIGINAL_SPIN_JSON  style="width:60%;height:80px;display:none;">Loading...</textarea>
+<textarea name=UNDOS id=UNDOS style="width:60%;height:400px;display:none;"></textarea>
+
+<br />
+<!--
+<br />
+<br />
+<a href="?HOTSPOT_CLASS=d2&HOTSPOT_STARTS_FRAME_NUMBER=1&HOTSPOT_STARTS_POSITION_X=98&HOTSPOT_STARTS_POSITION_Y=1&HOTSPOT_ENDSON_FRAME_NUMBER=72&HOTSPOT_ENDSON_POSITION_X=1&HOTSPOT_ENDSON_POSITION_Y=98&HOTSPOT_CONTENT=More+here+and+here+BOX-X+%5BBOX_X%5D+BOX-Y+%5BBOX_Y%5D&SPIN_URL=https://demo.sirv.com/spins/bw/PX-Blue-Headphones/PX-Blue-Headphones.spin&SPIN_URL_ROOT=https%3A%2F%2Fdemo.sirv.com%2Fspins%2FSpinDownloader%2Fspin.picupmedia.com%2F2020-01-04-14-48-00%2F&END_SUBMIT=END">
+Sample Link</a>
+
+<br />
+<a href="?HOTSPOT_CLASS=d2&HOTSPOT_STARTS_FRAME_NUMBER=1&HOTSPOT_STARTS_POSITION_X=98&HOTSPOT_STARTS_POSITION_Y=1&HOTSPOT_ENDSON_FRAME_NUMBER=72&HOTSPOT_ENDSON_POSITION_X=1&HOTSPOT_ENDSON_POSITION_Y=98&HOTSPOT_CONTENT=More+here+and+here+BOX-X+%5BBOX_X%5D+BOX-Y+%5BBOX_Y%5D&SPIN_URL=https%3A%2F%2Fdemo.sirv.com%2Fspins%2FSpinDownloader%2Fspin.picupmedia.com%2F2020-01-04-14-48-00%2Fhotspots.spin&SPIN_URL_ROOT=https%3A%2F%2Fdemo.sirv.com%2Fspins%2FSpinDownloader%2Fspin.picupmedia.com%2F2020-01-04-14-48-00%2F&END_SUBMIT=END">
+Sample Link to spin with hotspots already added, which you can add more too</a>
+<br />
+
+<a href="?HOTSPOT_CLASS=d2&HOTSPOT_STARTS_FRAME_NUMBER=1&HOTSPOT_STARTS_POSITION_X=98&HOTSPOT_STARTS_POSITION_Y=1&HOTSPOT_ENDSON_FRAME_NUMBER=72&HOTSPOT_ENDSON_POSITION_X=1&HOTSPOT_ENDSON_POSITION_Y=98&HOTSPOT_CONTENT=More+here+and+here+BOX-X+%5BBOX_X%5D+BOX-Y+%5BBOX_Y%5D&SPIN_URL=https://demo.sirv.com/spins/Royale_beige/Royale_beige.spin&SPIN_URL_ROOT=https://demo.sirv.com/spins/Royale_beige&END_SUBMIT=END">
+Sample Link to 3D spin</a>
+
+
+<br />
+<br />
+<br />
+-->
+
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+</div>
+</body>
+</html>
